@@ -30,7 +30,7 @@
 ## Toolchain Integration
 
 ### Integration Points
-Each toolchain typically define their own customizatioin points (e.g. .github/instructions.md for GitHub Copilot, etc).
+Each toolchain typically define their own customization point (e.g. .github/instructions.md for GitHub Copilot, CLAUDE.md for Claude Code etc).
 Those integration points should reference main README.md to ensure consistent rules across toolchains.
 
 ### Context Scope
