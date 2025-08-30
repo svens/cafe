@@ -118,3 +118,18 @@ New users can test the CAFE architecture with these example prompts:
 - `"Create a composite action that uses all three: color, shape, and size"`
 - `"Debug why an action isn't found in a specific silo"`
 - `"Add a new silo README with specific constraints and test inheritance"`
+
+## TODO: Future Improvements
+
+### Documentation Enhancements
+- **Error Handling Patterns** - Add `/patterns/error-handling.md` and `/patterns/logging.md`
+- **Action Naming Conventions** - Define standards for verbs, nouns, and prefixes
+
+### Operational Improvements  
+- **Action Discovery Helper** - Add `list-actions.md` to show available actions in context
+- **Silo Health Check** - Template for verifying silo completeness
+
+### Architecture Extensions
+- **Multi-level Inheritance** - Example with `silo/shapes/polygons/triangle/` structure
+- **Cross-silo Dependencies** - Pattern for inter-silo references
+- **Action Versioning** - Backward compatibility conventions
