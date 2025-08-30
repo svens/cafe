@@ -20,7 +20,8 @@ docs/knowledge/                  # Knowledge base
 └── action-debugging.md         # FAQ for common action issues
 
 patterns/                        # Reusable implementation patterns
-└── validate.md                 # Input validation pattern
+├── validate.md                 # Input validation pattern
+└── validate-dependencies.md    # Action dependency validation
 
 shape/                           # Base framework
 ├── .cafe/actions/
