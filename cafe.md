@@ -1,80 +1,65 @@
-# AI/DOC-FIRST MONOREPO GUIDE & PROMPT
+# CAFE: Contextual AI Framework Environment
 
 ## Philosophy
-- Humans focus on ideas, architecture, and documentation
-- AI handles implementation, repetitive tasks, pipelines, testing, and deployment
-- Everything starts with documentation: doc-first approach
-  - Each silo has a README.md describing purpose, APIs, dependencies, build/test/deploy
-  - New features start with a doc under /silo/x/docs/features/
-  - AI uses docs as context to generate code/pipelines/tests
+- **Doc-first**: Documentation drives development, not the reverse
+- **Human-AI collaboration**: Humans focus on ideas and architecture, AI handles implementation
+- **Project freedom**: Minimal constraints, maximum flexibility in project organization
+- **Context-aware**: AI understands project structure through discoverable conventions
 
-## Repo Structure
-- /base -> shared framework libraries
-- .cafe/actions/ -> shared actions (build/test/lint/ci/deploy)
-- /silo/x/ -> independent services, using base
-- /silo/x/.cafe/actions/ -> silo-specific actions (override/extend shared ones)
-- /pipelines/templates/ -> shared Azure DevOps pipeline templates
-- /patterns/ -> reusable implementation patterns (retry, logging, metrics)
-- /docs/knowledge/ -> FAQs, fixes, learnings
-- /docs/postmortems/ -> incident reviews
+## Core Concepts
 
-## Actions & Agents
-- File named {ACTION}.md defines a action
-- Actions define: purpose, invocation, expected outputs, AI notes
-- AI can call actions (like "agents") to build, test, lint, deploy
-- Shared actions, e.g. build.md, test.md, deploy.md, lint.md, ci.md
-- Silo-specific actions: add new ones or override shared actions with local nuances
-- Enforce schema for actions to ensure consistency
-  (e.g. yaml with fields like `name`, `description`, `inputs`, `outputs`, `ai_notes`)
+### Actions
+Actions are executable tasks that AI can invoke to build, test, deploy, or perform other project operations.
 
-## Toolchain Integration
+**Action Resolution Algorithm:**
+1. Start in current working directory
+2. Look for `.cafe/actions/ACTION_NAME` (executable file)
+3. If not found, walk up directory tree checking each parent's `.cafe/actions/`
+4. If action still missing, report missing dependency
+5. Execute the found action from the directory where it was discovered
 
-### Integration Points
-Each toolchain typically define their own customizatioin points (e.g. .github/instructions.md for GitHub Copilot, etc).
-Those integration points should reference main README.md to ensure consistent rules across toolchains.
+Actions can be any executable format (shell scripts, Python, etc.) - no mandatory schema required.
 
-### Context Scope
-- CLI (aider-like): scope is set by current directory (silo context)
-- GUI (Roo Code): configure per-folder context rules
-- Both approaches limit AI scope to relevant silo + root rules
+### Roles
+Roles define how AI should interact within specific contexts through system prompts.
 
-## Instructions
-- Root README.md defines directly or links to various files for:
-  - Shared conventions (coding style, etc)
-  - Document-first rule
-  - Azure DevOps pipelines must extend from templates
-  - Shared actions + per-silo overrides
-  - Safety rules (no secrets, no bypass of approvals)
-- Per-silo README.md adds service-specific rules
+**Role Structure:**
+- Stored in repository root: `.cafe/roles/ROLE_NAME.md`
+- Each role is a markdown file containing the AI prompt
+- Optional YAML frontmatter for role configuration (temperature, model preferences, etc.)
+- Example roles: `architect`, `reviewer`, `tester`, `documenter`
 
-## Culture & Governance
-- PR template enforces doc-first updates (README/FEATURE + actions + pipeline)
-- All AI-generated PRs labeled `[ai-generated]` and reviewed
-- AI must never log secrets or disable TLS
-- Knowledge sharing through /patterns/, /docs/knowledge/, /docs/postmortems/
+### Documentation Context Resolution
+README.md files provide context that cascades from generic (parent) to specific (child) directories.
 
-## Silo Autonomy via AI
-- Each sile has its own playbook of actions, pipelines, and docs
-- AI can fully operate within a silo's context over its lifecycle (build, test, deploy, doc generation)
-- Developers steer at the architecture and documentation level
+**README.md Resolution:**
+1. Start from repository root README.md (base context)
+2. Walk down to current directory, collecting README.md from each level
+3. Merge contexts: parent provides general rules, child adds/overrides specifics  
+4. AI receives combined context when working in any directory
+5. Child README.md can reference parent sections or completely override them
 
-## Workflow Example
-1. Developer writes README.md or feature doc
-   (starting with draft PR to provide stage for discussion and team input)
-2. AI reads doc, generates code/tests/pipeline changes
-3. Developer reviews/polishes AI output
-4. Commands ensure consistent build/test/deploy
-5. CI/CD pipelines (ADO) run shared templates with silo extensions
-   (can be triggered by AI using az-cli devops plugin, described in actions)
-6. Governance ensures docs, actions, and pipelines stay in sync
+## Project Structure
+Projects organize themselves freely. CAFE only requires:
+- `.cafe/` directories for CAFE-specific files (actions, roles)
+- `README.md` files for contextual documentation
+- No prescribed folder layouts or naming conventions
 
-## Sandboxed Experimentation
-- Create `playground` silo for testing new ideas where AI can scaffold
-  experimental code, pipelines, actions and docs without polluting main silos
-- Developers can use this to refactor useful pieces for features, patterns, or actions
+## Workflow
+1. **Document**: Write README.md describing goals, APIs, constraints
+2. **Implement**: AI generates code using documentation as context
+3. **Validate**: Run actions (test, lint, build) to verify implementation
+4. **Iterate**: Refine docs and code together
 
-## AI Notes (Meta)
-- Always prefer clarity and standardization over silo drift
-- Always link doc-first, actions, and pipelines
-- If silo has no override, fall back to shared defaults
-- Use /patterns/ before re-inventing logic
+## Integration
+CAFE works with any toolchain by providing discoverable conventions:
+- Actions for common operations (build, test, deploy, lint)
+- Roles for specialized AI behavior
+- Documentation for context and constraints
+- Tool-agnostic approach - no vendor lock-in
+
+## AI Guidelines
+- Always check for relevant actions before implementing manual solutions
+- Respect README.md context hierarchy when making decisions
+- Use appropriate role prompts for the task at hand
+- Maintain doc-first discipline: update documentation with code changes
