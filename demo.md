@@ -69,10 +69,11 @@ Make scripts robust and informative with proper error handling.
 #### [ ] 5. Create cascading README.md documentation
 **Goal:** Demonstrate how context flows from parent to child directories
 **Description:** Write README.md files at root, lib/, and app/ levels showing context inheritance
+**Note:** The root README.md can be completely rewritten during this step to contain project-specific content instead of just pointing to demo.md
 **AI Prompt:**
 ```
 Create cascading README.md files:
-- Root: Project overview, build requirements, C++ standards
+- Root: Project overview, build requirements, C++ standards (replace the current README.md with full project documentation)
 - lib/: Library API design, function specifications, usage guidelines
 - app/: Application purpose, command-line interface, examples
 Show how child contexts build upon parent contexts.
