@@ -81,17 +81,30 @@ Show how child contexts build upon parent contexts.
 
 ### Phase 4: Implementation & Review
 
-#### [ ] 6. Demonstrate AI workflow using roles and actions
-**Goal:** Show complete workflow of implementation and review using CAFE concepts
-**Description:** Use developer role to implement, then reviewer role to assess, showing action discovery
+#### [ ] 6. Create workflow for code implementation and review
+**Goal:** Create a reusable workflow demonstrating multi-step AI process
+**Description:** Define workflow that implements code, builds, and reviews using different roles
 **AI Prompt:**
 ```
-Demonstrate complete CAFE workflow:
-1. Adopt developer role and implement the greeting library and main app per README requirements
-2. Use build action to compile and verify
-3. Switch to reviewer role and assess code quality, security, maintainability
+Create a CAFE workflow `.cafe/workflows/implement-and-review.md` that:
+1. Uses developer role to implement code per README requirements
+2. Uses build action to compile and verify
+3. Switches to reviewer role to assess code quality
+4. Documents findings and recommendations
+Include proper step configuration with roles and dependencies.
+```
+
+#### [ ] 7. Execute the implementation workflow
+**Goal:** Demonstrate workflow execution and role switching
+**Description:** Run the workflow to implement the greeting library and main app
+**AI Prompt:**
+```
+Execute the implement-and-review workflow to:
+1. Implement the greeting library and main application per README requirements
+2. Build and verify the implementation
+3. Review code quality, security, and maintainability
 4. Show how actions work from any directory (action resolution algorithm)
-Document the process and findings.
+Document the complete process and findings.
 ```
 
 ## Project Requirements
@@ -117,8 +130,9 @@ The hello-world project should implement:
 1. **Context Cascading:** How README.md files provide layered context
 2. **Action Discovery:** How AI finds and uses actions from any directory
 3. **Role Switching:** How different AI roles approach the same codebase
-4. **Doc-First Approach:** How documentation drives implementation decisions
-5. **Project Freedom:** How CAFE works with any project structure
+4. **Workflow Execution:** How multi-step AI processes are defined and executed
+5. **Doc-First Approach:** How documentation drives implementation decisions
+6. **Project Freedom:** How CAFE works with any project structure
 
 ## Expected Outcomes
 

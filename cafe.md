@@ -29,19 +29,48 @@ Roles define how AI should interact within specific contexts through system prom
 - Optional YAML frontmatter for role configuration (temperature, model preferences, etc.)
 - Example roles: `architect`, `reviewer`, `tester`, `documenter`
 
+### Workflows
+Workflows define AI-oriented series of steps to achieve complex goals like generating code from updated docs, reviewing changesets, or performing maintenance.
+
+**Workflow Structure:**
+- Stored in `.cafe/workflows/WORKFLOW_NAME.md`
+- Each workflow is a markdown file with steps containing:
+  - Optional YAML frontmatter for step configuration (role, dependencies)
+  - **Goal:** Short step objective
+  - **Description:** Detailed step explanation
+  - **AI Prompt:** Prompt to achieve the goal
+
+**Workflow Resolution Algorithm:**
+1. Look for `.cafe/workflows/WORKFLOW_NAME.md` in current directory
+2. If not found, walk up directory tree checking each parent's `.cafe/workflows/`
+3. Execute from directory where workflow was discovered
+
+**Step Configuration:**
+```yaml
+steps:
+  - role: developer
+    depends_on: [step_id]
+```
+
+**Execution:**
+- Humans invoke workflows through AI interface (Claude, IDEs, etc.)
+- Each step can specify different roles for context switching
+- Step results pass context through AI prompts
+- Workflows are interruptible/resumable via AI interface
+
 ### Documentation Context Resolution
 README.md files provide context that cascades from generic (parent) to specific (child) directories.
 
 **README.md Resolution:**
 1. Start from repository root README.md (base context)
 2. Walk down to current directory, collecting README.md from each level
-3. Merge contexts: parent provides general rules, child adds/overrides specifics  
+3. Merge contexts: parent provides general rules, child adds/overrides specifics
 4. AI receives combined context when working in any directory
 5. Child README.md can reference parent sections or completely override them
 
 ## Project Structure
 Projects organize themselves freely. CAFE only requires:
-- `.cafe/` directories for CAFE-specific files (actions, roles)
+- `.cafe/` directories for CAFE-specific files (actions, roles, workflows)
 - `README.md` files for contextual documentation
 - No prescribed folder layouts or naming conventions
 
@@ -55,6 +84,7 @@ Projects organize themselves freely. CAFE only requires:
 CAFE works with any toolchain by providing discoverable conventions:
 - Actions for common operations (build, test, deploy, lint)
 - Roles for specialized AI behavior
+- Workflows for multi-step AI processes
 - Documentation for context and constraints
 - Tool-agnostic approach - no vendor lock-in
 
