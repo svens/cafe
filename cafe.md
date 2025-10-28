@@ -97,6 +97,37 @@ CAFE works with any toolchain by providing discoverable conventions:
 - Documentation for context and constraints
 - Tool-agnostic approach - no vendor lock-in
 
+## Managing Structural Changes
+
+When project structure changes (adding/removing/renaming major components), multiple files need updates. A systematic approach prevents inconsistencies.
+
+### Sync Markers
+
+Mark sections that reference project structure with HTML comments:
+```html
+<!-- SYNC:STRUCTURE - Component list -->
+```
+
+When structure changes, search for markers to find affected sections. Use consistent naming (`SYNC:STRUCTURE`, `SYNC:COMPONENTS`, etc.) appropriate to your project.
+
+### Workflow Pattern
+
+For frequent structural changes, define a workflow:
+1. **Plan**: Identify affected artifacts (code, docs, `.agents/` files)
+2. **Update**: Modify code, documentation, and CAFE infrastructure
+3. **Validate**: Run actions to verify changes
+4. **Review**: Check completeness using sync marker search
+
+Use architect role (if defined) for planning and review steps.
+
+### Validation
+
+After structural changes:
+- Run all actions (build, test, custom validations)
+- Search for sync markers to verify all updates made
+- Check documentation links still work
+- Verify CAFE actions/workflows execute correctly
+
 ## Performance Considerations
 - Discovery results (actions, roles, workflows, etc) cached in `.agents/cache.yaml` (relative paths from project root)
 - Cache invalidated based on `.agents/` directory modification times
@@ -134,12 +165,17 @@ The AGENTS.md should:
    - Documentation maintenance expectations
    - Context resolution hierarchy (README.md cascade)
 
-4. **Getting Started**
+4. **Maintenance Practices**
+   - How to use sync markers to track structural dependencies
+   - When to use the structural change workflow
+   - Cache maintenance and invalidation
+
+5. **Getting Started**
    - How new agents should orient themselves to the project
    - Essential actions to run for project setup/validation
    - Key files and directories to understand
 
-5. **Common Tasks**
+6. **Common Tasks**
    - Typical development workflows and which CAFE components to use
    - How to extend the CAFE infrastructure for new needs
 
@@ -152,4 +188,5 @@ When working on a CAFE-enabled project:
 2. Check available actions in `.agents/actions/` before implementing manual solutions
 3. Use appropriate roles from `.agents/roles/` for different types of work
 4. Follow the README.md context hierarchy when making decisions
-5. Maintain doc-first discipline: update documentation with code changes
+5. When making structural changes, use sync markers and follow the validation workflow
+6. Maintain doc-first discipline: update documentation with code changes
