@@ -77,6 +77,77 @@ README.md files provide context that cascades from generic (parent) to specific 
 4. Agents receive combined context when working in any directory
 5. Child README.md can reference parent sections or completely override them
 
+**Avoiding Duplication:**
+- **Document once, reference elsewhere**: When information applies to multiple contexts, establish a canonical location and reference it from other locations
+- **Identify cross-cutting information**: If the same guidance appears in 3+ files, it's a candidate for centralization
+- **Use cross-references**: Link to canonical documentation rather than duplicating content
+- **Context hierarchy determines ownership**: Parent-level concerns belong in parent docs, child-specific details in child docs
+
+### Documentation Principles
+
+CAFE projects follow the DRY (Don't Repeat Yourself) principle for documentation to maintain consistency and reduce maintenance burden.
+
+**When to Document Inline vs. Reference:**
+
+✅ **Document inline** when:
+- Information is specific to this file's context only
+- Content is brief (1-2 sentences) and tightly coupled to surrounding content
+- Duplication would be minimal and unlikely to change independently
+
+✅ **Document once, reference elsewhere** when:
+- Information applies to multiple contexts or files
+- Content is detailed (procedures, conventions, explanations)
+- Changes would require updates in multiple locations
+- Information represents a canonical definition or standard
+
+**Identifying Cross-Cutting Information:**
+
+Ask these questions when documenting:
+1. **Does this information appear elsewhere?** Search for similar content in other docs
+2. **Will this information be referenced from multiple contexts?** Consider future use
+3. **Is this a project-wide convention or principle?** Belongs in AGENTS.md or CAFE.md
+4. **Would changes here require updates elsewhere?** Strong signal for centralization
+
+**Cross-Referencing Best Practices:**
+
+**Internal references** (same file):
+```markdown
+See [Section Name](#section-anchor) for details
+```
+
+**Cross-file references** (within project):
+```markdown
+See FILENAME "Section Name" for the canonical guidance
+See [FILENAME](path/to/file.md#section-anchor) for details
+```
+
+**Examples:**
+
+❌ **Bad - Duplicated across 4 files:**
+```markdown
+# File 1
+Extract username: `git config user.email | cut -d'@' -f1`
+
+# File 2
+Extract username: `git config user.email | cut -d'@' -f1`
+
+# File 3
+Extract username: `git config user.email | cut -d'@' -f1`
+```
+
+✅ **Good - Document once, reference elsewhere:**
+```markdown
+# AGENTS.md (canonical location)
+## Username Extraction
+Extract username: `git config user.email | cut -d'@' -f1`
+
+# File 1
+See AGENTS.md "Username Extraction" section
+
+# File 2
+See AGENTS.md "Username Extraction" section
+```
+
 ## Project Structure
 Projects organize themselves freely. CAFE only requires:
 - `.agents/` directories for CAFE-specific files (actions, roles, workflows)
@@ -103,22 +174,84 @@ When project structure changes (adding/removing/renaming major components), mult
 
 ### Sync Markers
 
-Mark sections that reference project structure with HTML comments:
+**Key principle:** Sync markers are topic discovery aids, not format specifications. They help find all locations discussing a structural concept, regardless of representation format.
+
+Mark sections that reference project structure with comments using idiomatic syntax for each language:
+
 ```html
 <!-- SYNC:STRUCTURE - Component list -->
 ```
 
-When structure changes, search for markers to find affected sections. Use consistent naming (`SYNC:STRUCTURE`, `SYNC:COMPONENTS`, etc.) appropriate to your project.
+```bash
+# SYNC:STRUCTURE - Component list
+```
+
+```rust
+// SYNC:STRUCTURE - Component list
+```
+
+The pattern `SYNC:TOPIC` remains consistent; only comment syntax adapts to the language.
+
+**Finding markers:**
+```sh
+# Find all sync markers
+grep -r "SYNC:" .
+
+# Find specific topic
+grep -r "SYNC:STRUCTURE" .
+```
+
+**Naming conventions:**
+
+Use topic-focused names describing the concept being synchronized:
+- ✅ Good: `SYNC:STRUCTURE`, `SYNC:DEPENDENCIES`, `SYNC:CAFE:ACTIONS`
+- ❌ Avoid: `SYNC:COMPONENT_LIST`, `SYNC:README_DIAGRAM` (implies format/location)
+
+Consider prefixes for organization:
+- `SYNC:CAFE:*` - CAFE infrastructure (actions, roles, workflows)
+- `SYNC:*` - Project-specific structure
+
+### When to Use Sync Markers
+
+Add markers when:
+- Structural element referenced in multiple files
+- Changes require coordinated updates across files
+- Different file types reflect the same logical structure
+- Content is a discrete structural artifact (lists, diagrams, code blocks)
+
+Skip markers for:
+- Single-file references
+- Auto-generated content
+- Implementation details that don't cross boundaries
+- Descriptive prose that embeds component names inline
+
+**Prose vs. Artifacts**:
+
+Sync markers work best for **structured artifacts** (bulleted lists, code sections, diagrams) where component names appear in predictable formats. For **descriptive prose** that naturally embeds component names (e.g., "The client and server components both use..."), use direct text search instead:
+
+```sh
+# Find all mentions of a component in documentation
+rg "component_name" README.md AGENTS.md
+
+# Case-insensitive search for variations
+rg -i "server" AGENTS.md
+```
+
+When performing structural changes, use both strategies:
+1. Search sync markers to find structural artifacts
+2. Search component names directly to find prose descriptions
 
 ### Workflow Pattern
 
-For frequent structural changes, define a workflow:
-1. **Plan**: Identify affected artifacts (code, docs, `.agents/` files)
-2. **Update**: Modify code, documentation, and CAFE infrastructure
+For frequent structural changes:
+1. **Plan**: Search for sync markers to identify affected artifacts
+2. **Update**: Modify each location appropriately for its context
 3. **Validate**: Run actions to verify changes
-4. **Review**: Check completeness using sync marker search
+4. **Review**: Search markers again to confirm completeness
 
 Use architect role (if defined) for planning and review steps.
+
+**For projects with frequent structural changes**, consider defining this as a workflow in `.agents/workflows/` (see Workflows section).
 
 ### Validation
 
@@ -127,6 +260,81 @@ After structural changes:
 - Search for sync markers to verify all updates made
 - Check documentation links still work
 - Verify CAFE actions/workflows execute correctly
+- Ensure logical consistency across different representations
+
+## Continuous Improvement
+
+CAFE projects benefit from systematic learning and improvement based on agent experiences.
+
+### Learning From Mistakes
+
+When agents make mistakes despite following documentation and validations, these represent opportunities to improve the CAFE infrastructure itself.
+
+**Common mistake categories:**
+- **CAFE gaps**: Missing patterns, insufficient discovery, unclear context resolution
+- **Project documentation gaps**: Ambiguous guidance, missing examples, hard-to-find information
+- **Validation gaps**: Missing automated checks for important invariants
+- **Workflow gaps**: Complex tasks without systematic guidance
+
+**Out of scope**: Trivial issues (typos, minor inconsistencies) that don't reveal systematic problems.
+
+### Root Cause Analysis Pattern
+
+Use systematic analysis to identify fundamental causes:
+
+1. **5-Whys Method** (minimum 3, maximum 5 iterations):
+   - Start with the mistake: "Why did [X] happen?"
+   - Continue asking "why" for each answer until reaching root cause
+   - Root cause typically reveals missing documentation, unclear patterns, or validation gaps
+
+2. **Fishbone Analysis** (if multiple distinct causes):
+   - **People**: Role clarity, responsibility boundaries
+   - **Process**: Workflow availability, action coverage
+   - **Documentation**: README.md completeness, CAFE.md clarity
+   - **Tools**: Validation scripts, sync markers, infrastructure
+
+3. **Scope Determination**:
+   - CAFE framework issue (affects any CAFE project)
+   - Project-specific issue (unique to this codebase)
+   - Both (CAFE principle applied incorrectly in project context)
+
+### Lessons Learned Repository
+
+**Structure:** `.agents/lessons/<yyyy>_<mm>_<dd>_<username>-<short-subject>.md`
+
+**Content:**
+- Issue description and impact
+- Complete root cause analysis (5-whys, fishbone if applicable)
+- Accepted solution with implementation checklist
+- Validation approach
+- Prevention measures
+
+**Purpose:**
+- Preserve institutional knowledge about common pitfalls
+- Track improvements to CAFE principles and project documentation
+- Identify patterns requiring broader infrastructure changes
+- Enable periodic review for systematic improvements
+
+**Discovery:**
+```sh
+# Find by category
+rg "Category.*CAFE gap" .agents/lessons/
+
+# Find incomplete action items
+rg "\[ \]" .agents/lessons/
+```
+
+### Improvement Workflow Pattern
+
+For projects with frequent agent collaboration, consider defining a `learn-from-mistakes` workflow (use the architect role if available, unless overwritten by project context):
+
+**Step 1**: Analyze and classify the mistake (analytical temperature)
+**Step 2**: Root cause analysis using 5-whys/fishbone (analytical temperature)
+**Step 3**: Design solutions (exploratory temperature)
+**Step 4**: Implement improvements to CAFE/project infrastructure (default agent)
+**Step 5**: Validate and document lesson (analytical temperature)
+
+This workflow ensures systematic continuous improvement rather than ad-hoc fixes.
 
 ## Performance Considerations
 - Discovery results (actions, roles, workflows, etc) cached in `.agents/cache.yaml` (relative paths from project root)
@@ -138,6 +346,7 @@ After structural changes:
 - Respect README.md context hierarchy when making decisions
 - Use appropriate role prompts for the task at hand
 - Maintain doc-first discipline: update documentation with code changes
+- Document mistakes systematically to improve CAFE infrastructure
 
 ## Getting Started
 
@@ -168,6 +377,7 @@ The AGENTS.md should:
 4. **Maintenance Practices**
    - How to use sync markers to track structural dependencies
    - When to use the structural change workflow
+   - Continuous improvement and lessons learned
    - Cache maintenance and invalidation
 
 5. **Getting Started**
@@ -190,3 +400,4 @@ When working on a CAFE-enabled project:
 4. Follow the README.md context hierarchy when making decisions
 5. When making structural changes, use sync markers and follow the validation workflow
 6. Maintain doc-first discipline: update documentation with code changes
+7. When mistakes occur, use systematic root cause analysis to improve infrastructure
