@@ -328,11 +328,11 @@ rg "\[ \]" .agents/lessons/
 
 For projects with frequent agent collaboration, consider defining a `learn-from-mistakes` workflow (use the architect role if available, unless overwritten by project context):
 
-**Step 1**: Analyze and classify the mistake (analytical temperature)
-**Step 2**: Root cause analysis using 5-whys/fishbone (analytical temperature)
-**Step 3**: Design solutions (exploratory temperature)
-**Step 4**: Implement improvements to CAFE/project infrastructure (default agent)
-**Step 5**: Validate and document lesson (analytical temperature)
+- **Step 1**: Analyze and classify the mistake (analytical temperature)
+- **Step 2**: Root cause analysis using 5-whys/fishbone (analytical temperature)
+- **Step 3**: Design solutions (exploratory temperature)
+- **Step 4**: Implement improvements to CAFE/project infrastructure (default agent)
+- **Step 5**: Validate and document lesson (analytical temperature)
 
 This workflow ensures systematic continuous improvement rather than ad-hoc fixes.
 
