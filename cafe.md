@@ -1,5 +1,18 @@
 # CAFE: Contextual Agent Framework Environment
 
+[[_TOC_]]
+
+## About This Framework
+
+CAFE provides conventions and patterns for agent-human collaboration, but **every concept is optional**. Projects can:
+
+- Adopt only the pieces that add value (e.g., just AGENTS.md, or just actions)
+- Ignore sections that don't fit their needs
+- Customize patterns to match existing workflows
+- Mix CAFE with other approaches
+
+This is a framework of **suggestions, not requirements**. Use what helps, skip what doesn't.
+
 ## Philosophy
 - **Doc-first**: Documentation drives development, not the reverse
 - **Human-agent collaboration**: Humans focus on ideas and architecture, agents handle implementation
@@ -7,6 +20,40 @@
 - **Context-aware**: Agents understand project structure through discoverable conventions
 
 ## Core Concepts
+
+### Naming Conventions
+
+CAFE uses standard names throughout this documentation for clarity and consistency (`AGENTS.md`, `.agents/`, `README.md`, etc.), but **all names are examples only**. Projects are free to choose alternatives that fit their conventions.
+
+**Flexibility Principle:** Every CAFE concept (agent entry point, infrastructure directory, documentation files, subdirectories) can use project-specific names. The agent entry point document must explain the project's chosen naming conventions and how to discover CAFE infrastructure.
+
+**Examples of alternatives:**
+- Agent entry point: `AGENTS.md`, `AI.md`, `AGENT_GUIDE.md`, `.agent-docs.md`
+- Infrastructure directory: `.agents/`, `.ai/`, `.cafe/`, `agents/`, `ai-tools/`
+- Documentation: `README.md` hierarchy, `GUIDE.md`, `docs/`, wiki links
+- Subdirectories: `actions/`→`scripts/`, `roles/`→`personas/`, `workflows/`→`processes/`
+
+**Important:** When using non-standard names, document them prominently in your agent entry point so agents can discover and use CAFE infrastructure correctly.
+
+### Agent Entry Point
+Projects using CAFE have a primary entry point document in the project root that serves as the orientation guide for agents working on the project.
+
+**Purpose:**
+- First file agents read when starting work on a project
+- Links together all CAFE infrastructure (actions, roles, workflows)
+- Documents project-specific conventions and guidelines
+- Explains how to use project's documentation structure
+
+**Key Content:**
+- **CAFE Infrastructure Guide**: Available actions, roles, workflows and when to use them
+- **Agent Guidelines**: Coding standards, testing requirements, quality gates
+- **Maintenance Practices**: Discovery strategies, structural change workflows, lessons learned
+- **Getting Started**: Orientation for new agents, essential setup/validation steps
+- **Common Tasks**: Typical workflows and which CAFE components to use
+
+**Best Practice:** Every agent invocation should start by reading this entry point document to understand the project's structure, conventions, and available CAFE infrastructure before proceeding with work. This provides both comprehensive orientation and efficient discovery without directory walking.
+
+**Project Boundary:** The location of AGENTS.md defines the project root for CAFE purposes. Repositories can contain multiple projects using CAFE, each with their own AGENTS.md and `.agents/` infrastructure operating independently.
 
 ### Actions
 Actions are executable tasks that agents can invoke to build, test, deploy, or perform other project operations.
@@ -29,7 +76,8 @@ Actions can be any executable format (shell scripts, Python, etc.) - no mandator
 Roles define how agents should interact within specific contexts through system prompts.
 
 **Role Structure:**
-- Stored in repository root: `.agents/roles/ROLE_NAME.md`
+- Stored in project root: `.agents/roles/ROLE_NAME.md`
+- Roles are centralized because they define project-wide agent behavior and context
 - Each role is a markdown file containing the agent prompt
 - Optional YAML frontmatter for role configuration (temperature, model preferences, etc.)
 - Roles can extend base roles using `extends: base_role_name` in frontmatter
@@ -43,7 +91,7 @@ Workflows define agent-oriented series of steps to achieve complex goals like ge
 - Stored in `.agents/workflows/WORKFLOW_NAME.md`
 - Each workflow is a markdown file with steps containing:
   - **Goal:** Short step objective
-  - **Role:** Agent role to assume for the step (role must exist in `.agents/roles/`)
+  - **Role:** Agent role to assume for the step (see [Roles](#roles) section)
   - **Description:** Detailed step explanation
   - **Agent Prompt:** Prompt to achieve the goal
 
@@ -60,105 +108,113 @@ Workflows define agent-oriented series of steps to achieve complex goals like ge
 **Execution:**
 - Humans invoke workflows through agent interface (Claude, IDEs, etc.)
 - Each step can specify different roles for context switching
-- Workflows are interruptible/resumable via user interface (claude, opencode, IDEs, etc.)
+- Workflows are interruptible/resumable via user interface (Claude, OpenCode, IDEs, etc.)
 
 **Context Passing:**
-- Step results automatically available as `{{previous_step_result}}` in next step
-- Named outputs: steps can export `{{step_name.output_key}}` for later reference
-- Global context: `{{workflow.context}}` persists across all steps
+Workflows executing within a single agent session can pass context between steps. The specific mechanism depends on the agent platform implementation, but typically includes:
+- Access to previous step results for sequential processing
+- Named outputs that steps can export for later reference by subsequent steps
+- Global workflow context that persists across all steps in the session
+- Error context from failed steps passed to subsequent steps (see Error Handling above)
 
 ### Documentation Context Resolution
 README.md files provide context that cascades from generic (parent) to specific (child) directories.
 
 **README.md Resolution:**
-1. Start from repository root README.md (base context)
+1. Start from project root README.md (base context)
 2. Walk down to current directory, collecting README.md from each level
 3. Merge contexts: parent provides general rules, child adds/overrides specifics
 4. Agents receive combined context when working in any directory
 5. Child README.md can reference parent sections or completely override them
 
 **Avoiding Duplication:**
-- **Document once, reference elsewhere**: When information applies to multiple contexts, establish a canonical location and reference it from other locations
-- **Identify cross-cutting information**: If the same guidance appears in 3+ files, it's a candidate for centralization
-- **Use cross-references**: Link to canonical documentation rather than duplicating content
-- **Context hierarchy determines ownership**: Parent-level concerns belong in parent docs, child-specific details in child docs
+See the [Documentation Principles](#documentation-principles) section below for guidance on the DRY principle and when to centralize vs. reference documentation.
 
 ### Documentation Principles
 
-CAFE projects follow the DRY (Don't Repeat Yourself) principle for documentation to maintain consistency and reduce maintenance burden.
+Projects using CAFE follow the DRY (Don't Repeat Yourself) principle for documentation to maintain consistency and reduce maintenance burden.
 
-**When to Document Inline vs. Reference:**
+**Document once, reference elsewhere:**
+- Information applying to multiple contexts belongs in a canonical location
+- Use cross-references to avoid duplication
+- Context hierarchy determines ownership: parent-level concerns in parent docs, child-specific details in child docs
 
-✅ **Document inline** when:
-- Information is specific to this file's context only
-- Content is brief (1-2 sentences) and tightly coupled to surrounding content
-- Duplication would be minimal and unlikely to change independently
-
-✅ **Document once, reference elsewhere** when:
-- Information applies to multiple contexts or files
-- Content is detailed (procedures, conventions, explanations)
-- Changes would require updates in multiple locations
-- Information represents a canonical definition or standard
-
-**Identifying Cross-Cutting Information:**
-
-Ask these questions when documenting:
-1. **Does this information appear elsewhere?** Search for similar content in other docs
-2. **Will this information be referenced from multiple contexts?** Consider future use
-3. **Is this a project-wide convention or principle?** Belongs in AGENTS.md or CAFE.md
-4. **Would changes here require updates elsewhere?** Strong signal for centralization
-
-**Cross-Referencing Best Practices:**
-
-**Internal references** (same file):
-```markdown
-See [Section Name](#section-anchor) for details
-```
-
-**Cross-file references** (within project):
-```markdown
-See FILENAME "Section Name" for the canonical guidance
-See [FILENAME](path/to/file.md#section-anchor) for details
-```
-
-**Examples:**
-
-❌ **Bad - Duplicated across 4 files:**
-```markdown
-# File 1
-Extract username: `git config user.email | cut -d'@' -f1`
-
-# File 2
-Extract username: `git config user.email | cut -d'@' -f1`
-
-# File 3
-Extract username: `git config user.email | cut -d'@' -f1`
-```
-
-✅ **Good - Document once, reference elsewhere:**
-```markdown
-# AGENTS.md (canonical location)
-## Username Extraction
-Extract username: `git config user.email | cut -d'@' -f1`
-
-# File 1
-See AGENTS.md "Username Extraction" section
-
-# File 2
-See AGENTS.md "Username Extraction" section
-```
+**Identifying cross-cutting information:**
+- Does this appear elsewhere? Search before documenting
+- Will this be referenced from multiple contexts?
+- Would changes require updates in multiple locations?
 
 ## Project Structure
-Projects organize themselves freely. CAFE only requires:
-- `.agents/` directories for CAFE-specific files (actions, roles, workflows)
+Projects organize themselves freely. CAFE conventions include:
+- **Agent entry point** in project root (typically `AGENTS.md`) - orientation guide for agents
+- `.agents/` directories for CAFE infrastructure (actions, roles, workflows)
 - `README.md` files for contextual documentation
-- No prescribed folder layouts or naming conventions
+- No other prescribed folder layouts or naming conventions
+
+**Multiple Projects in One Repository:**
+Monorepos can contain multiple independent projects using CAFE, each marked by its own AGENTS.md:
+- Each AGENTS.md defines a separate project root
+- Directory-walking for actions/roles/workflows stops at project root
+- Projects can share code but maintain separate CAFE infrastructure
+- Useful for microservices, multi-component systems, or organizational code sharing
 
 ## Workflow
-1. **Document**: Write README.md describing goals, APIs, constraints
-2. **Implement**: Agents generate code using documentation as context
-3. **Validate**: Run actions (test, lint, build) to verify implementation
-4. **Iterate**: Refine docs and code together
+1. **Document**: Write documentation describing goals, APIs, constraints
+2. **Plan**: Break down work into tasks, identify dependencies, choose approaches
+3. **Implement**: Agents generate code using documentation as context
+4. **Validate**: Run actions (test, lint, build) to verify implementation
+5. **Iterate**: Refine docs and code together
+
+## TODO Management
+
+CAFE does not prescribe TODO tracking - projects can use any approach or none at all. This section provides guidance for projects that choose to implement systematic TODO management for long-running or complex agent work.
+
+Long-running or complex work benefits from explicit task tracking. Projects may implement TODO management systems using CAFE infrastructure or integrate with external tools.
+
+### When TODO Management Adds Value
+
+- **Complex multi-step tasks**: Work requiring coordination across multiple sessions
+- **Long-term projects**: Features spanning days/weeks with multiple agents
+- **Context preservation**: Maintaining state across interruptions or agent switches
+- **Progress visibility**: Human oversight of agent work progress
+
+### Design Considerations
+
+Projects implementing TODO management should consider:
+
+**Storage Options**:
+- File-based in `.agents/todos/` (CAFE infrastructure approach)
+- File-based in `todos/` at project root (project-level approach)
+- Project root `TODO.md` or `TODOS.md` (simple projects)
+- External systems (GitHub Issues, Jira, Linear, etc.)
+- Human-readable format for git workflows and manual editing
+- Discoverable through CAFE's directory-walking pattern (if file-based)
+
+**Organization**:
+- Hierarchical task breakdown (projects → tasks → subtasks)
+- Status tracking (pending, in-progress, blocked, completed)
+- Priority classification appropriate to project needs
+- Context linking (RFCs, lessons learned, architecture docs)
+
+**Integration Approaches**:
+- **File-based**: Actions for operations (add, list, update, archive), workflows for patterns (planning, tracking, completion)
+- **External systems**: CLI integration actions (e.g., `gh issue`, `jira-cli`), API wrappers for agent use
+- **Hybrid**: File-based for agent working state, external system for team coordination
+
+**Scope Determination**:
+- Define granularity appropriate to project scale (feature-level vs file-level)
+- Consider team size and collaboration needs (single-user vs multi-user)
+- Establish archival and cleanup policies
+- Balance between structure and overhead
+
+### Context Passing
+
+TODO systems preserve context across sessions through persistent references:
+- Link TODOs to relevant documentation (RFCs, architecture docs, lessons learned)
+- Reference workflow results or decisions that created the TODO
+- Include file/line references for implementation tasks
+- Link to external tracking systems for team coordination
+- Workflows can query TODO state for decision-making across sessions
 
 ## Integration
 CAFE works with any toolchain by providing discoverable conventions:
@@ -170,234 +226,110 @@ CAFE works with any toolchain by providing discoverable conventions:
 
 ## Managing Structural Changes
 
-When project structure changes (adding/removing/renaming major components), multiple files need updates. A systematic approach prevents inconsistencies.
+When project structure changes (adding/removing/renaming major components), multiple files may need coordinated updates. A systematic approach prevents inconsistencies.
 
-### Sync Markers
+**Examples of structural changes:**
+- Adding/removing components, modules, or services
+- Renaming core abstractions or interfaces
+- Restructuring directory hierarchies
+- Adding/removing CAFE infrastructure (actions, roles, workflows)
 
-**Key principle:** Sync markers are topic discovery aids, not format specifications. They help find all locations discussing a structural concept, regardless of representation format.
+**Why this needs special handling:** Regular validation (build/test) may not catch all inconsistencies. Documentation, examples, and configuration files can become stale even when code compiles successfully.
 
-Mark sections that reference project structure with comments using idiomatic syntax for each language:
+### Discovery Strategies
 
-```html
-<!-- SYNC:STRUCTURE - Component list -->
-```
+Projects can choose approaches to identify locations requiring updates:
+- **Search-based**: Text/pattern search for component references (e.g., `rg "old_component_name"`)
+- **Validation-enforced**: Automated checks (build/test failures, linting, CI)
+- **Sync markers**: Explicit topic markers in comments (e.g., `SYNC:STRUCTURE`)
 
-```bash
-# SYNC:STRUCTURE - Component list
-```
-
-```rust
-// SYNC:STRUCTURE - Component list
-```
-
-The pattern `SYNC:TOPIC` remains consistent; only comment syntax adapts to the language.
-
-**Finding markers:**
-```sh
-# Find all sync markers
-grep -r "SYNC:" .
-
-# Find specific topic
-grep -r "SYNC:STRUCTURE" .
-```
-
-**Naming conventions:**
-
-Use topic-focused names describing the concept being synchronized:
-- ✅ Good: `SYNC:STRUCTURE`, `SYNC:DEPENDENCIES`, `SYNC:CAFE:ACTIONS`
-- ❌ Avoid: `SYNC:COMPONENT_LIST`, `SYNC:README_DIAGRAM` (implies format/location)
-
-Consider prefixes for organization:
-- `SYNC:CAFE:*` - CAFE infrastructure (actions, roles, workflows)
-- `SYNC:*` - Project-specific structure
-
-### When to Use Sync Markers
-
-Add markers when:
-- Structural element referenced in multiple files
-- Changes require coordinated updates across files
-- Different file types reflect the same logical structure
-- Content is a discrete structural artifact (lists, diagrams, code blocks)
-
-Skip markers for:
-- Single-file references
-- Auto-generated content
-- Implementation details that don't cross boundaries
-- Descriptive prose that embeds component names inline
-
-**Prose vs. Artifacts**:
-
-Sync markers work best for **structured artifacts** (bulleted lists, code sections, diagrams) where component names appear in predictable formats. For **descriptive prose** that naturally embeds component names (e.g., "The client and server components both use..."), use direct text search instead:
-
-```sh
-# Find all mentions of a component in documentation
-rg "component_name" README.md AGENTS.md
-
-# Case-insensitive search for variations
-rg -i "server" AGENTS.md
-```
-
-When performing structural changes, use both strategies:
-1. Search sync markers to find structural artifacts
-2. Search component names directly to find prose descriptions
+**Choose based on**: Project size, component coupling, team needs, available tooling.
 
 ### Workflow Pattern
 
-For frequent structural changes:
-1. **Plan**: Search for sync markers to identify affected artifacts
+Use this systematic approach:
+1. **Plan**: Identify all affected locations using your chosen discovery strategy
 2. **Update**: Modify each location appropriately for its context
-3. **Validate**: Run actions to verify changes
-4. **Review**: Search markers again to confirm completeness
+3. **Validate**: Run actions to verify changes (build, test, lint)
+4. **Review**: Confirm completeness by applying discovery strategy again
 
-Use architect role (if defined) for planning and review steps.
-
-**For projects with frequent structural changes**, consider defining this as a workflow in `.agents/workflows/` (see Workflows section).
-
-### Validation
-
-After structural changes:
-- Run all actions (build, test, custom validations)
-- Search for sync markers to verify all updates made
-- Check documentation links still work
-- Verify CAFE actions/workflows execute correctly
-- Ensure logical consistency across different representations
+For projects with frequent structural changes, consider defining this as a workflow in `.agents/workflows/` (see [Workflows](#workflows) section).
 
 ## Continuous Improvement
 
-CAFE projects benefit from systematic learning and improvement based on agent experiences.
+Projects using CAFE benefit from systematic learning and improvement based on agent experiences.
 
 ### Learning From Mistakes
 
-When agents make mistakes despite following documentation and validations, these represent opportunities to improve the CAFE infrastructure itself.
+When agents make mistakes despite following documentation and validations, these represent opportunities to improve the CAFE infrastructure.
 
 **Common mistake categories:**
 - **CAFE gaps**: Missing patterns, insufficient discovery, unclear context resolution
-- **Project documentation gaps**: Ambiguous guidance, missing examples, hard-to-find information
-- **Validation gaps**: Missing automated checks for important invariants
-- **Workflow gaps**: Complex tasks without systematic guidance
+- **Project gaps**: Ambiguous guidance, missing validation, workflow gaps
 
 **Out of scope**: Trivial issues (typos, minor inconsistencies) that don't reveal systematic problems.
 
-### Root Cause Analysis Pattern
+### Root Cause Analysis
 
 Use systematic analysis to identify fundamental causes:
-
-1. **5-Whys Method** (minimum 3, maximum 5 iterations):
-   - Start with the mistake: "Why did [X] happen?"
-   - Continue asking "why" for each answer until reaching root cause
-   - Root cause typically reveals missing documentation, unclear patterns, or validation gaps
-
-2. **Fishbone Analysis** (if multiple distinct causes):
-   - **People**: Role clarity, responsibility boundaries
-   - **Process**: Workflow availability, action coverage
-   - **Documentation**: README.md completeness, CAFE.md clarity
-   - **Tools**: Validation scripts, sync markers, infrastructure
-
-3. **Scope Determination**:
-   - CAFE framework issue (affects any CAFE project)
-   - Project-specific issue (unique to this codebase)
-   - Both (CAFE principle applied incorrectly in project context)
+- **5-Whys Method**: Start with the mistake, ask "why" until reaching root cause (typically 3-5 iterations)
+- **Fishbone Analysis**: For multiple distinct causes, examine People, Process, Documentation, and Tools
+- **Scope Determination**: CAFE framework issue, project-specific issue, or both
 
 ### Lessons Learned Repository
 
-**Structure:** `.agents/lessons/<yyyy>_<mm>_<dd>_<username>-<short-subject>.md`
+**Storage**: `.agents/lessons/<yyyy>_<mm>_<dd>_<username>-<short-subject>.md`
 
-**Content:**
-- Issue description and impact
-- Complete root cause analysis (5-whys, fishbone if applicable)
-- Accepted solution with implementation checklist
-- Validation approach
-- Prevention measures
-
-**Purpose:**
-- Preserve institutional knowledge about common pitfalls
-- Track improvements to CAFE principles and project documentation
-- Identify patterns requiring broader infrastructure changes
-- Enable periodic review for systematic improvements
-
-**Discovery:**
-```sh
-# Find by category
-rg "Category.*CAFE gap" .agents/lessons/
-
-# Find incomplete action items
-rg "\[ \]" .agents/lessons/
-```
+**Purpose**: Preserve institutional knowledge, track improvements, identify patterns, enable periodic review.
 
 ### Improvement Workflow Pattern
 
-For projects with frequent agent collaboration, consider defining a `learn-from-mistakes` workflow (use the architect role if available, unless overwritten by project context):
-
-- **Step 1**: Analyze and classify the mistake (analytical temperature)
-- **Step 2**: Root cause analysis using 5-whys/fishbone (analytical temperature)
-- **Step 3**: Design solutions (exploratory temperature)
-- **Step 4**: Implement improvements to CAFE/project infrastructure (default agent)
-- **Step 5**: Validate and document lesson (analytical temperature)
-
-This workflow ensures systematic continuous improvement rather than ad-hoc fixes.
-
-## Performance Considerations
-- Discovery results (actions, roles, workflows, etc) cached in `.agents/cache.yaml` (relative paths from project root)
-- Cache invalidated based on `.agents/` directory modification times
-- Cache file should be added to `.gitignore` (project-local, not version controlled)
-
-## Agent Guidelines
-- Always check for relevant actions before implementing manual solutions
-- Respect README.md context hierarchy when making decisions
-- Use appropriate role prompts for the task at hand
-- Maintain doc-first discipline: update documentation with code changes
-- Document mistakes systematically to improve CAFE infrastructure
+For projects with frequent agent collaboration, consider defining a `learn-from-mistakes` workflow with systematic steps: analyze, root cause analysis, design solutions, implement, validate and document (see [Workflows](#workflows) section for structure).
 
 ## Getting Started
 
 ### For Project Teams
+
 To adopt CAFE in your project, use this bootstrap prompt with any agent:
 
 ```
-Read the CAFE framework specification from https://github.com/svens/cafe/blob/v2/cafe.md and create an AGENTS.md file in the repository root that serves as the general entry point for various agents working on this project.
+Read the CAFE framework specification from https://github.com/svens/cafe/blob/v2/cafe.md and create an agent entry point file in the project root following the structure described in the "Agent Entry Point" section of the CAFE specification.
 
-The AGENTS.md should:
-
-1. **Project Overview**
-   - Brief description of the project and its goals
-   - Technology stack and key frameworks used
-   - Development workflow and team practices
-
-2. **CAFE Infrastructure Guide**
-   - Available actions in `.agents/actions/` and when to use them
-   - Defined roles in `.agents/roles/` and their purposes
-   - Existing workflows in `.agents/workflows/` and their use cases
-
-3. **Agent Guidelines**
-   - Project-specific coding standards and conventions
-   - Testing requirements and quality gates
-   - Documentation maintenance expectations
-   - Context resolution hierarchy (README.md cascade)
-
-4. **Maintenance Practices**
-   - How to use sync markers to track structural dependencies
-   - When to use the structural change workflow
-   - Continuous improvement and lessons learned
-   - Cache maintenance and invalidation
-
-5. **Getting Started**
-   - How new agents should orient themselves to the project
-   - Essential actions to run for project setup/validation
-   - Key files and directories to understand
-
-6. **Common Tasks**
-   - Typical development workflows and which CAFE components to use
-   - How to extend the CAFE infrastructure for new needs
+The agent entry point should serve as the orientation guide for agents and include:
+- Project overview (goals, technology stack, development workflow)
+- CAFE Infrastructure Guide (available actions, roles, workflows)
+- Agent Guidelines (coding standards, testing, documentation)
+- Maintenance Practices (discovery strategies, structural changes, lessons learned)
+- Getting Started (orientation for new agents, essential validation steps)
+- Common Tasks (typical workflows and CAFE component usage)
 
 Also implement the actual `.agents/` infrastructure (actions, roles, workflows) referenced in the AGENTS.md file, tailored to this project's specific technology stack and development practices.
 ```
 
+### For Existing Projects
+
+CAFE can be adopted incrementally - use only what adds value:
+
+**Minimal Start:**
+- Create agent entry point documenting existing practices and conventions
+- Reference existing documentation structure (documentation hierarchy, wikis, or other docs)
+- No infrastructure changes needed initially
+
+**Expanding Incrementally:**
+- Add actions only for operations agents repeatedly perform manually
+- Keep using existing CI, build scripts, and team tooling
+- Add roles when specialized agent contexts provide value
+- Create workflows for recurring multi-step agent processes
+- Establish lessons learned when patterns emerge
+
+**Key Principle:** CAFE complements existing workflows rather than replacing them. Focus on agent-specific conveniences, not general team tooling.
+
 ### For Individual Agents
-When working on a CAFE-enabled project:
-1. Read the project's `AGENTS.md` file first for project-specific guidance
+When working on a project using CAFE:
+1. **Read the agent entry point first** (typically `AGENTS.md`) - this orients you to the project's structure, conventions, and available CAFE infrastructure
 2. Check available actions in `.agents/actions/` before implementing manual solutions
 3. Use appropriate roles from `.agents/roles/` for different types of work
-4. Follow the README.md context hierarchy when making decisions
-5. When making structural changes, use sync markers and follow the validation workflow
+4. Follow the documentation context hierarchy when making decisions
+5. When making structural changes, use discovery strategies and validation workflows
 6. Maintain doc-first discipline: update documentation with code changes
 7. When mistakes occur, use systematic root cause analysis to improve infrastructure
